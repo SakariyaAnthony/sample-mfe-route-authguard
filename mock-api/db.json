@@ -1,0 +1,49 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "john",
+      "password": "1234",
+      "name": "John Mathew",
+      "permissions": ["accounts", "cards", "utility", "transfer", "beneficiary"]
+    },
+    {
+      "id": 2,
+      "username": "viewer",
+      "password": "1234",
+      "name": "Priya Viewer",
+      "permissions": ["accounts", "cards", "utility"]
+    }
+  ],
+  "accounts": [
+    { "id": 1, "number": "001200045671", "type": "Savings", "branch": "MG Road, Bengaluru", "currency": "INR", "balance": 152340.75 },
+    { "id": 2, "number": "001200098812", "type": "Current", "branch": "Anna Nagar, Chennai", "currency": "INR", "balance": 48210.0 },
+    { "id": 3, "number": "001200033219", "type": "Fixed Deposit", "branch": "MG Road, Bengaluru", "currency": "INR", "balance": 500000.0 }
+  ],
+  "transactions": [
+    { "id": 1, "accountId": 1, "date": "2026-11-03", "description": "Salary credit - ACME Corp", "type": "CR", "amount": 95000 },
+    { "id": 2, "accountId": 1, "date": "2026-11-02", "description": "Electricity bill - BESCOM", "type": "DR", "amount": 2340 },
+    { "id": 3, "accountId": 1, "date": "2026-11-01", "description": "UPI - Grocery Mart", "type": "DR", "amount": 1875.5 },
+    { "id": 4, "accountId": 1, "date": "2026-10-29", "description": "ATM withdrawal", "type": "DR", "amount": 5000 },
+    { "id": 5, "accountId": 2, "date": "2026-11-03", "description": "Client payment - Invoice 1043", "type": "CR", "amount": 30000 },
+    { "id": 6, "accountId": 2, "date": "2026-10-30", "description": "Office rent", "type": "DR", "amount": 18000 },
+    { "id": 7, "accountId": 3, "date": "2026-10-01", "description": "FD interest credit", "type": "CR", "amount": 3125 }
+  ],
+  "cards": [
+    { "id": 1, "type": "Debit", "network": "VISA", "number": "4111 **** **** 1234", "holder": "JOHN MATHEW", "expiry": "08/29", "status": "ACTIVE", "linkedAccountId": 1 },
+    { "id": 2, "type": "Credit", "network": "MASTERCARD", "number": "5500 **** **** 9876", "holder": "JOHN MATHEW", "expiry": "02/28", "status": "ACTIVE", "limit": 200000, "outstanding": 18450 },
+    { "id": 3, "type": "Debit", "network": "RUPAY", "number": "6521 **** **** 4410", "holder": "JOHN MATHEW", "expiry": "11/27", "status": "BLOCKED", "linkedAccountId": 2 }
+  ],
+  "billers": [
+    { "id": 1, "name": "BESCOM", "category": "Electricity", "consumerLabel": "Account ID" },
+    { "id": 2, "name": "Airtel Postpaid", "category": "Mobile", "consumerLabel": "Mobile number" },
+    { "id": 3, "name": "BWSSB", "category": "Water", "consumerLabel": "RR number" },
+    { "id": 4, "name": "Tata Play", "category": "DTH", "consumerLabel": "Subscriber ID" }
+  ],
+  "payments": [],
+  "beneficiaries": [
+    { "id": 1, "name": "Ravi Kumar", "accountNumber": "002300011122", "ifsc": "HDFC0001234", "bank": "HDFC Bank", "nickname": "Ravi" },
+    { "id": 2, "name": "Anita Sharma", "accountNumber": "004500077788", "ifsc": "ICIC0004567", "bank": "ICICI Bank", "nickname": "Anita" }
+  ],
+  "transfers": []
+}
