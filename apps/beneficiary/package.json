@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:federated": "vite build --logLevel warn && concurrently -k -r \"vite build --watch --logLevel warn\" \"vite preview\"",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p ."
   },
   "dependencies": {
     "@bank/shared": "*",

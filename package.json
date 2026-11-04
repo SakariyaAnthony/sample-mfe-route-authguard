@@ -2,7 +2,7 @@
   "name": "retail-banking-mfe",
   "private": true,
   "version": "1.0.0",
-  "description": "Retail internet banking micro-frontend demo: Vite + React + Bootstrap + Module Federation, axios API layer and route guards",
+  "description": "Retail internet banking micro-frontend demo: Vite + React + TypeScript + Bootstrap + Module Federation, axios API layer and route guards",
   "workspaces": [
     "mock-api",
     "packages/*",
@@ -11,12 +11,16 @@
   "scripts": {
     "dev": "npm run dev:all",
     "api": "npm run start -w mock-api",
+    "typecheck": "npm run typecheck -w @bank/shared -w @bank/shell -w @bank/accounts -w @bank/cards -w @bank/utility -w @bank/transfer -w @bank/beneficiary",
     "build": "npm run build -w @bank/accounts -w @bank/cards -w @bank/utility -w @bank/transfer -w @bank/beneficiary -w @bank/shell",
     "build:remotes": "npm run build -w @bank/accounts -w @bank/cards -w @bank/utility -w @bank/transfer -w @bank/beneficiary",
     "dev:all": "concurrently -k -n api,accounts,cards,utility,transfer,benef,shell -c gray,blue,magenta,yellow,cyan,green,red \"npm run api\" \"npm run dev:federated -w @bank/accounts\" \"npm run dev:federated -w @bank/cards\" \"npm run dev:federated -w @bank/utility\" \"npm run dev:federated -w @bank/transfer\" \"npm run dev:federated -w @bank/beneficiary\" \"npm run dev -w @bank/shell\"",
     "preview:all": "npm run build && concurrently -k -n api,accounts,cards,utility,transfer,benef,shell -c gray,blue,magenta,yellow,cyan,green,red \"npm run api\" \"npm run preview -w @bank/accounts\" \"npm run preview -w @bank/cards\" \"npm run preview -w @bank/utility\" \"npm run preview -w @bank/transfer\" \"npm run preview -w @bank/beneficiary\" \"npm run preview -w @bank/shell\""
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
   }
 }

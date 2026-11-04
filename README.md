@@ -1,6 +1,6 @@
 # Retail Internet Banking - Micro-Frontend Demo
 
-A small sample built with **Vite + React + Bootstrap** that demonstrates:
+A small sample built with **Vite + React + TypeScript + Bootstrap** that demonstrates:
 
 1. **Micro-frontend architecture** with Module Federation: a host (shell) app loads 5 independently built remote apps at runtime.
 2. **A clean API layer** with axios: one shared client, interceptors, a service layer per module and reusable hooks.
@@ -29,11 +29,12 @@ sample-mfe-route-authguard/
 ├── mock-api/                 json-server backend: login, token check, permissions, delay
 ├── packages/shared/          used by the host and every remote
 │   └── src/
-│       ├── api/httpClient.js     axios instance + interceptors
-│       ├── api/ApiError.js       normalized error type
-│       ├── auth/authStore.js     session in sessionStorage, hasPermission()
-│       ├── hooks/useApi.js       GET on mount: data / loading / error / refetch + cancellation
-│       ├── hooks/useMutation.js  POST / PATCH / DELETE: mutate / loading / error
+│       ├── api/httpClient.ts     axios instance + interceptors
+│       ├── api/ApiError.ts       normalized error type
+│       ├── auth/authStore.ts     session in sessionStorage, hasPermission()
+│       ├── hooks/useApi.ts       GET on mount: data / loading / error / refetch + cancellation
+│       ├── hooks/useMutation.ts  POST / PATCH / DELETE: mutate / loading / error
+│       ├── types/banking.ts     API models (Account, Card, Transfer, ...) shared by all apps
 │       └── components/           Loader, ErrorAlert, StandaloneShell
 └── apps/
     ├── shell/                HOST: login, layout, routing, guards, dashboard
@@ -49,22 +50,30 @@ sample-mfe-route-authguard/
 - Modules talk to each other only through URLs (for example, Beneficiary links to `/transfer?beneficiaryId=1`). They never import each other.
 - Auth state is kept in a framework-agnostic store (`sessionStorage`) instead of a React context, so it works across separately built bundles.
 
+### TypeScript setup
+
+- All apps extend [tsconfig.base.json](tsconfig.base.json) (`strict` mode). `npm run build` runs `tsc` before `vite build`, so a type error fails the build.
+- API models live in [packages/shared/src/types/banking.ts](packages/shared/src/types/banking.ts) and act as the contract between the backend and every micro-frontend. Services are typed end to end, for example `httpClient.get<Account[]>('/accounts')`, so `useApi` infers `data` as `Account[] | null` without extra annotations.
+- Federated imports such as `import('accounts/App')` only exist at runtime, so the shell declares them in [apps/shell/src/remotes.d.ts](apps/shell/src/remotes.d.ts).
+- The mock API in `mock-api/` stays plain JavaScript; it is a stand-in backend, not part of the frontend.
+
 ## Getting started
 
 Requires Node 18 or later.
 
 ```bash
 npm install
-npm run dev:all
+npm run dev
 ```
 
 Open http://localhost:3000.
 
 | Script | What it does |
 | --- | --- |
-| `npm run dev:all` | Mock API, all remotes (build in watch mode + preview) and the shell in Vite dev mode |
+| `npm run dev` (or `dev:all`) | Mock API, all remotes (build in watch mode + preview) and the shell in Vite dev mode |
 | `npm run preview:all` | Production build of everything, served with `vite preview` |
-| `npm run build` | Build all remotes and the shell |
+| `npm run build` | Type-check and build all remotes and the shell |
+| `npm run typecheck` | Run `tsc` on every workspace |
 | `npm run api` | Mock API only |
 
 Remotes are built and served with `vite preview` even in development, because `@originjs/vite-plugin-federation` only generates `remoteEntry.js` at build time. When you edit a remote, the watch build picks up the change; refresh the browser to see it.
@@ -95,10 +104,10 @@ Page component  ->  useApi / useMutation  ->  moduleService  ->  httpClient (axi
 
 | Layer | Responsibility | Example |
 | --- | --- | --- |
-| `httpClient` | Base URL, timeout, auth header, correlation id, error normalization, 401 handling | [packages/shared/src/api/httpClient.js](packages/shared/src/api/httpClient.js) |
-| Service | One function per endpoint, returns plain data, no React | [apps/accounts/src/services/accountService.js](apps/accounts/src/services/accountService.js) |
-| Hook | Loading / error / data state, request cancellation | [packages/shared/src/hooks/useApi.js](packages/shared/src/hooks/useApi.js) |
-| Component | Renders state, never calls axios directly | [apps/accounts/src/pages/AccountList.jsx](apps/accounts/src/pages/AccountList.jsx) |
+| `httpClient` | Base URL, timeout, auth header, correlation id, error normalization, 401 handling | [packages/shared/src/api/httpClient.ts](packages/shared/src/api/httpClient.ts) |
+| Service | One function per endpoint, returns plain data, no React | [apps/accounts/src/services/accountService.ts](apps/accounts/src/services/accountService.ts) |
+| Hook | Loading / error / data state, request cancellation | [packages/shared/src/hooks/useApi.ts](packages/shared/src/hooks/useApi.ts) |
+| Component | Renders state, never calls axios directly | [apps/accounts/src/pages/AccountList.tsx](apps/accounts/src/pages/AccountList.tsx) |
 
 Things to point out in the code:
 
