@@ -11,7 +11,7 @@ export default defineConfig({
       name: 'transfer',
       filename: 'remoteEntry.js',
       exposes: { './App': './src/App.tsx' },
-      shared: ['react', 'react-dom', 'react-router-dom'],
+      shared: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
     }),
   ],
   server: { port: PORT, strictPort: true },

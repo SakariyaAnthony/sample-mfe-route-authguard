@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useApi, Loader, ErrorAlert, formatCurrency } from '@bank/shared';
-import { accountService } from '../services/accountService';
+import { useQuery } from '@tanstack/react-query';
+import { accountsQuery, Loader, ErrorAlert, formatCurrency } from '@bank/shared';
 
 export default function AccountList() {
-  const { data: accounts, loading, error, refetch } = useApi((signal) => accountService.getAccounts({ signal }));
+  const { data: accounts, isPending: loading, error, refetch } = useQuery(accountsQuery());
 
   return (
     <>

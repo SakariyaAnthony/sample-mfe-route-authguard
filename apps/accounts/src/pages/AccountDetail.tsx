@@ -1,19 +1,20 @@
 import { Link, useParams } from 'react-router-dom';
-import { useApi, Loader, ErrorAlert, formatCurrency, formatDate } from '@bank/shared';
-import { accountService } from '../services/accountService';
+import { useQuery } from '@tanstack/react-query';
+import { accountQuery, Loader, ErrorAlert, formatCurrency, formatDate } from '@bank/shared';
+import { transactionsQuery } from '../services/accountService';
 
 export default function AccountDetail() {
   const { accountId = '' } = useParams<{ accountId: string }>();
-  const account = useApi((signal) => accountService.getAccount(accountId, { signal }), [accountId]);
-  const transactions = useApi((signal) => accountService.getTransactions(accountId, { signal }), [accountId]);
+  const account = useQuery(accountQuery(accountId));
+  const transactions = useQuery(transactionsQuery(accountId));
 
   return (
     <>
       <Link to=".." relative="path" className="btn btn-link px-0 mb-2">&larr; Back to accounts</Link>
 
       <ErrorAlert error={account.error} onRetry={account.refetch} />
-      {account.loading && <Loader text="Fetching account..." />}
-      {account.data && !account.loading && (
+      {account.isPending && <Loader text="Fetching account..." />}
+      {account.data && !account.isPending && (
         <div className="card mb-4">
           <div className="card-body d-flex justify-content-between align-items-center">
             <div>
@@ -30,8 +31,8 @@ export default function AccountDetail() {
 
       <h5>Transactions</h5>
       <ErrorAlert error={transactions.error} onRetry={transactions.refetch} />
-      {transactions.loading && <Loader text="Fetching transactions..." />}
-      {transactions.data && !transactions.loading && (
+      {transactions.isPending && <Loader text="Fetching transactions..." />}
+      {transactions.data && !transactions.isPending && (
         transactions.data.length === 0 ? (
           <p className="text-secondary">No transactions yet.</p>
         ) : (

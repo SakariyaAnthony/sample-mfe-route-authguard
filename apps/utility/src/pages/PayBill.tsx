@@ -1,7 +1,17 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useApi, useMutation, Loader, ErrorAlert, formatCurrency, maskAccount, type Payment } from '@bank/shared';
-import { utilityService } from '../services/utilityService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  accountsQuery,
+  queryKeys,
+  notify,
+  Loader,
+  ErrorAlert,
+  formatCurrency,
+  maskAccount,
+  type Payment,
+} from '@bank/shared';
+import { billerQuery, utilityService } from '../services/utilityService';
 
 interface PayBillForm {
   accountId: string;
@@ -11,32 +21,38 @@ interface PayBillForm {
 
 export default function PayBill() {
   const { billerId = '' } = useParams<{ billerId: string }>();
-  const biller = useApi((signal) => utilityService.getBiller(billerId, { signal }), [billerId]);
-  const accounts = useApi((signal) => utilityService.getAccounts({ signal }));
-  const payment = useMutation(utilityService.payBill);
+  const queryClient = useQueryClient();
+  const biller = useQuery(billerQuery(billerId));
+  const accounts = useQuery(accountsQuery());
 
   const [form, setForm] = useState<PayBillForm>({ accountId: '', consumerNumber: '', amount: '' });
   const [receipt, setReceipt] = useState<Payment | null>(null);
 
+  const payment = useMutation({
+    mutationFn: utilityService.payBill,
+    onSuccess: (result) => {
+      setReceipt(result);
+      notify(`Paid ${formatCurrency(result.amount)} to ${result.billerName}`);
+      // Balances shown by the dashboard, accounts and transfer modules are now out of date.
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
+    },
+  });
+
   const onChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const result = await payment.mutate({
-        billerId: Number(billerId),
-        accountId: Number(form.accountId),
-        consumerNumber: form.consumerNumber,
-        amount: Number(form.amount),
-      });
-      setReceipt(result);
-    } catch {
-      // error is exposed through payment.error
-    }
+    payment.mutate({
+      billerId: Number(billerId),
+      accountId: Number(form.accountId),
+      consumerNumber: form.consumerNumber,
+      amount: Number(form.amount),
+    });
   };
 
-  if (biller.loading || accounts.loading) return <Loader />;
+  if (biller.isPending || accounts.isPending) return <Loader />;
   if (biller.error || accounts.error || !biller.data || !accounts.data) {
     return <ErrorAlert error={biller.error ?? accounts.error} onRetry={biller.error ? biller.refetch : accounts.refetch} />;
   }
@@ -77,8 +93,8 @@ export default function PayBill() {
                 <label className="form-label" htmlFor="amount">Amount (INR)</label>
                 <input id="amount" name="amount" type="number" min="1" step="0.01" className="form-control" value={form.amount} onChange={onChange} required />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={payment.loading}>
-                {payment.loading ? 'Processing...' : 'Pay now'}
+              <button type="submit" className="btn btn-primary" disabled={payment.isPending}>
+                {payment.isPending ? 'Processing...' : 'Pay now'}
               </button>
             </form>
           )}

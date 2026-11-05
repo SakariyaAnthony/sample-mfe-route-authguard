@@ -1,6 +1,17 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useApi, useMutation, Loader, ErrorAlert, formatCurrency, maskAccount, type Account } from '@bank/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  accountsQuery,
+  beneficiariesQuery,
+  queryKeys,
+  notify,
+  Loader,
+  ErrorAlert,
+  formatCurrency,
+  maskAccount,
+  type Account,
+} from '@bank/shared';
 import { transferService } from '../services/transferService';
 import type { ReceiptLocationState } from './TransferReceipt';
 
@@ -31,8 +42,21 @@ const validate = (form: TransferFormValues, accounts: Account[]): FormErrors => 
 export default function TransferForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const formData = useApi((signal) => transferService.getFormData({ signal }));
-  const transfer = useMutation(transferService.createTransfer);
+  const queryClient = useQueryClient();
+  // Two independent queries run in parallel; both are cached and shared with other modules.
+  const accountsList = useQuery(accountsQuery());
+  const beneficiaryList = useQuery(beneficiariesQuery());
+
+  const transfer = useMutation({
+    mutationFn: transferService.createTransfer,
+    onSuccess: (result) => {
+      notify(`Transferred ${formatCurrency(result.amount)} to ${result.beneficiaryName}`);
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
+      const state: ReceiptLocationState = { transfer: result };
+      navigate('receipt', { state });
+    },
+  });
 
   const [form, setForm] = useState<TransferFormValues>({
     fromAccountId: '',
@@ -45,31 +69,31 @@ export default function TransferForm() {
   const onChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  if (formData.loading) return <Loader text="Loading accounts and beneficiaries (parallel calls)..." />;
-  if (formData.error || !formData.data) return <ErrorAlert error={formData.error} onRetry={formData.refetch} />;
+  if (accountsList.isPending || beneficiaryList.isPending) {
+    return <Loader text="Loading accounts and beneficiaries (parallel calls)..." />;
+  }
+  if (accountsList.isError || beneficiaryList.isError) {
+    const failed = accountsList.isError ? accountsList : beneficiaryList;
+    return <ErrorAlert error={failed.error} onRetry={failed.refetch} />;
+  }
 
-  const { accounts, beneficiaries } = formData.data;
+  const accounts = accountsList.data;
+  const beneficiaries = beneficiaryList.data;
   const fieldClass = (name: keyof TransferFormValues, base = 'form-control') =>
     `${base} ${errors[name] ? 'is-invalid' : ''}`;
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const found = validate(form, accounts);
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    try {
-      const result = await transfer.mutate({
-        fromAccountId: Number(form.fromAccountId),
-        beneficiaryId: Number(form.beneficiaryId),
-        amount: Number(form.amount),
-        remarks: form.remarks.trim(),
-      });
-      const state: ReceiptLocationState = { transfer: result };
-      navigate('receipt', { state });
-    } catch {
-      // error is exposed through transfer.error
-    }
+    transfer.mutate({
+      fromAccountId: Number(form.fromAccountId),
+      beneficiaryId: Number(form.beneficiaryId),
+      amount: Number(form.amount),
+      remarks: form.remarks.trim(),
+    });
   };
 
   return (
@@ -120,8 +144,8 @@ export default function TransferForm() {
               <input id="remarks" name="remarks" maxLength={50} className="form-control" value={form.remarks} onChange={onChange} />
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={transfer.loading}>
-              {transfer.loading ? 'Transferring...' : 'Transfer'}
+            <button type="submit" className="btn btn-primary" disabled={transfer.isPending}>
+              {transfer.isPending ? 'Transferring...' : 'Transfer'}
             </button>
           </form>
         </div>

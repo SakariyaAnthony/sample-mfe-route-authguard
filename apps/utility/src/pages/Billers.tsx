@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useApi, Loader, ErrorAlert } from '@bank/shared';
-import { utilityService } from '../services/utilityService';
+import { useQuery } from '@tanstack/react-query';
+import { Loader, ErrorAlert } from '@bank/shared';
+import { billersQuery } from '../services/utilityService';
 
 export default function Billers() {
-  const { data: billers, loading, error, refetch } = useApi((signal) => utilityService.getBillers({ signal }));
+  const { data: billers, isPending: loading, error, refetch } = useQuery(billersQuery());
 
   return (
     <>

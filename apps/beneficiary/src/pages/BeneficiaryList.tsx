@@ -1,22 +1,41 @@
 import { Link } from 'react-router-dom';
-import { authStore, useApi, useMutation, Loader, ErrorAlert, type Beneficiary } from '@bank/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  beneficiariesQuery,
+  queryKeys,
+  notify,
+  useHasPermission,
+  Loader,
+  ErrorAlert,
+  type Beneficiary,
+} from '@bank/shared';
 import { beneficiaryService } from '../services/beneficiaryService';
 
 export default function BeneficiaryList() {
-  const { data: beneficiaries, loading, error, refetch, setData } = useApi((signal) =>
-    beneficiaryService.getBeneficiaries({ signal }),
-  );
-  const removal = useMutation(beneficiaryService.deleteBeneficiary);
-  const canTransfer = authStore.hasPermission('transfer');
+  const queryClient = useQueryClient();
+  const { data: beneficiaries, isPending: loading, error, refetch } = useQuery(beneficiariesQuery());
+  const canTransfer = useHasPermission('transfer');
 
-  const remove = async (beneficiary: Beneficiary) => {
+  // Optimistic: the row disappears immediately and comes back if the DELETE fails.
+  const removal = useMutation({
+    mutationFn: beneficiaryService.deleteBeneficiary,
+    onMutate: async (id) => {
+      const key = queryKeys.beneficiaries.all;
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Beneficiary[]>(key);
+      queryClient.setQueryData<Beneficiary[]>(key, (list) => list?.filter((b) => b.id !== id));
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      queryClient.setQueryData(queryKeys.beneficiaries.all, context?.previous);
+    },
+    onSuccess: () => notify('Beneficiary removed'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.beneficiaries.all }),
+  });
+
+  const remove = (beneficiary: Beneficiary) => {
     if (!window.confirm(`Remove ${beneficiary.name}?`)) return;
-    try {
-      await removal.mutate(beneficiary.id);
-      setData((list) => list?.filter((b) => b.id !== beneficiary.id) ?? null);
-    } catch {
-      // error is exposed through removal.error
-    }
+    removal.mutate(beneficiary.id);
   };
 
   return (

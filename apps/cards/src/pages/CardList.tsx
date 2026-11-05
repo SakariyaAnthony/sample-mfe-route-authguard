@@ -1,24 +1,23 @@
-import { useState } from 'react';
-import { useApi, useMutation, Loader, ErrorAlert, formatCurrency, type Card } from '@bank/shared';
-import { cardService } from '../services/cardService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys, notify, Loader, ErrorAlert, formatCurrency, type Card } from '@bank/shared';
+import { cardService, cardsQuery } from '../services/cardService';
 
 export default function CardList() {
-  const { data: cards, loading, error, refetch, setData } = useApi((signal) => cardService.getCards({ signal }));
-  const statusUpdate = useMutation(cardService.updateStatus);
-  const [pendingId, setPendingId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { data: cards, isPending: loading, error, refetch } = useQuery(cardsQuery());
+  const statusUpdate = useMutation({
+    mutationFn: cardService.updateStatus,
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Card[]>(queryKeys.cards.all, (list) =>
+        list?.map((c) => (c.id === updated.id ? updated : c)),
+      );
+      notify(`Card ending ${updated.number.slice(-4)} is now ${updated.status.toLowerCase()}`);
+    },
+  });
+  const pendingId = statusUpdate.isPending ? statusUpdate.variables.id : null;
 
-  const toggleStatus = async (card: Card) => {
-    const nextStatus = card.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
-    setPendingId(card.id);
-    try {
-      const updated = await statusUpdate.mutate(card.id, nextStatus);
-      setData((list) => list?.map((c) => (c.id === updated.id ? updated : c)) ?? null);
-    } catch {
-      // error is exposed through statusUpdate.error
-    } finally {
-      setPendingId(null);
-    }
-  };
+  const toggleStatus = (card: Card) =>
+    statusUpdate.mutate({ id: card.id, status: card.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE' });
 
   return (
     <>

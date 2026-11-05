@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation, ErrorAlert } from '@bank/shared';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys, notify, ErrorAlert } from '@bank/shared';
 import { beneficiaryService } from '../services/beneficiaryService';
 
 interface BeneficiaryForm {
@@ -37,7 +38,15 @@ const FIELDS: { name: keyof BeneficiaryForm; label: string }[] = [
 
 export default function AddBeneficiary() {
   const navigate = useNavigate();
-  const creation = useMutation(beneficiaryService.addBeneficiary);
+  const queryClient = useQueryClient();
+  const creation = useMutation({
+    mutationFn: beneficiaryService.addBeneficiary,
+    onSuccess: (created) => {
+      notify(`${created.name} added as a beneficiary`);
+      queryClient.invalidateQueries({ queryKey: queryKeys.beneficiaries.all });
+      navigate('..', { relative: 'path' });
+    },
+  });
   const [form, setForm] = useState<BeneficiaryForm>({
     name: '',
     nickname: '',
@@ -53,24 +62,19 @@ export default function AddBeneficiary() {
     setForm({ ...form, [e.target.name]: value });
   };
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const found = validate(form);
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    try {
-      await creation.mutate({
-        name: form.name.trim(),
-        nickname: form.nickname.trim() || undefined,
-        accountNumber: form.accountNumber,
-        ifsc: form.ifsc,
-        bank: form.bank.trim(),
-      });
-      navigate('..', { relative: 'path' });
-    } catch {
-      // error is exposed through creation.error
-    }
+    creation.mutate({
+      name: form.name.trim(),
+      nickname: form.nickname.trim() || undefined,
+      accountNumber: form.accountNumber,
+      ifsc: form.ifsc,
+      bank: form.bank.trim(),
+    });
   };
 
   return (
@@ -94,8 +98,8 @@ export default function AddBeneficiary() {
                 <div className="invalid-feedback">{errors[name]}</div>
               </div>
             ))}
-            <button type="submit" className="btn btn-primary" disabled={creation.loading}>
-              {creation.loading ? 'Saving...' : 'Save beneficiary'}
+            <button type="submit" className="btn btn-primary" disabled={creation.isPending}>
+              {creation.isPending ? 'Saving...' : 'Save beneficiary'}
             </button>
           </form>
         </div>

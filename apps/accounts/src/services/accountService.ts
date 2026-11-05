@@ -1,21 +1,14 @@
-import { httpClient, type Account, type RequestOptions, type Transaction } from '@bank/shared';
+import { queryOptions } from '@tanstack/react-query';
+import { httpClient, queryKeys, type Transaction } from '@bank/shared';
 
-export const accountService = {
-  async getAccounts({ signal }: RequestOptions = {}): Promise<Account[]> {
-    const { data } = await httpClient.get<Account[]>('/accounts', { signal });
-    return data;
-  },
-
-  async getAccount(id: string, { signal }: RequestOptions = {}): Promise<Account> {
-    const { data } = await httpClient.get<Account>(`/accounts/${id}`, { signal });
-    return data;
-  },
-
-  async getTransactions(accountId: string, { signal }: RequestOptions = {}): Promise<Transaction[]> {
-    const { data } = await httpClient.get<Transaction[]>('/transactions', {
-      params: { accountId, _sort: 'date', _order: 'desc' },
-      signal,
-    });
-    return data;
-  },
-};
+export const transactionsQuery = (accountId: string) =>
+  queryOptions({
+    queryKey: queryKeys.transactions.byAccount(accountId),
+    queryFn: async ({ signal }) =>
+      (
+        await httpClient.get<Transaction[]>('/transactions', {
+          params: { accountId, _sort: 'date', _order: 'desc' },
+          signal,
+        })
+      ).data,
+  });

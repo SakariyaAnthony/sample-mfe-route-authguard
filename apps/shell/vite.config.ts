@@ -16,7 +16,7 @@ export default defineConfig({
         transfer: remote(3004),
         beneficiary: remote(3005),
       },
-      shared: ['react', 'react-dom', 'react-router-dom'],
+      shared: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
     }),
   ],
   server: { port: 3000, strictPort: true },

@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLocation, useNavigate, type Location } from 'react-router-dom';
-import { toApiError } from '@bank/shared';
+import { getUserMessage } from '@bank/shared';
 import { useAuth } from '../auth/AuthContext';
 
 export interface LoginLocationState {
@@ -35,7 +35,7 @@ export default function Login() {
       await login(form.username, form.password);
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(toApiError(err).message);
+      setError(getUserMessage(err));
       setLoading(false);
     }
   };

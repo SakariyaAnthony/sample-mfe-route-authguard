@@ -1,51 +1,87 @@
+import { useStore } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { createStore } from 'zustand/vanilla';
+import { createGlobalStore } from '../store/createGlobalStore';
 import type { Permission, Session, User } from '../types/banking';
 
-// Plain storage-backed store (no React context) so the host and every remote,
-// each with its own bundle, read the same session.
-const TOKEN_KEY = 'rib.token';
-const USER_KEY = 'rib.user';
-
 export const AUTH_LOGOUT_EVENT = 'auth:logout';
+
+export const AUTH_FORBIDDEN_EVENT = 'auth:forbidden';
 
 export interface AuthLogoutDetail {
   reason: 'expired';
 }
 
+export interface AuthForbiddenDetail {
+  message: string;
+  url?: string;
+}
+
 declare global {
   interface WindowEventMap {
     [AUTH_LOGOUT_EVENT]: CustomEvent<AuthLogoutDetail>;
+    [AUTH_FORBIDDEN_EVENT]: CustomEvent<AuthForbiddenDetail>;
   }
 }
 
+type LogoutReason = AuthLogoutDetail['reason'];
+
+interface SessionState {
+  token: string | null;
+  user: User | null;
+  /** Why the last session ended, so the login redirect can explain it. */
+  logoutReason: LogoutReason | null;
+}
+
+const EMPTY_SESSION: SessionState = { token: null, user: null, logoutReason: null };
+
+const sessionStore = createGlobalStore('session', () =>
+  createStore<SessionState>()(
+    persist(() => EMPTY_SESSION, {
+      name: 'rib.session',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: ({ token, user }) => ({ token, user }),
+    }),
+  ),
+);
+
+/** Imperative access for non-React code (axios interceptors, event handlers). */
 export const authStore = {
   getToken(): string | null {
-    return sessionStorage.getItem(TOKEN_KEY);
+    return sessionStore.getState().token;
   },
 
   getUser(): User | null {
-    const raw = sessionStorage.getItem(USER_KEY);
-    try {
-      return raw ? (JSON.parse(raw) as User) : null;
-    } catch {
-      return null;
-    }
+    return sessionStore.getState().user;
+  },
+
+  getLogoutReason(): LogoutReason | null {
+    return sessionStore.getState().logoutReason;
   },
 
   setSession({ token, user }: Pick<Session, 'token' | 'user'>): void {
-    sessionStorage.setItem(TOKEN_KEY, token);
-    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    sessionStore.setState({ token, user, logoutReason: null });
   },
 
-  clear(): void {
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
+  clear(reason: LogoutReason | null = null): void {
+    sessionStore.setState({ ...EMPTY_SESSION, logoutReason: reason });
   },
 
   isAuthenticated(): boolean {
-    return Boolean(this.getToken() && this.getUser());
+    const { token, user } = sessionStore.getState();
+    return Boolean(token && user);
   },
 
   hasPermission(permission: Permission): boolean {
-    return Boolean(this.getUser()?.permissions.includes(permission));
+    return Boolean(sessionStore.getState().user?.permissions.includes(permission));
   },
 };
+
+/** Current user, or null when signed out. Re-renders when the session changes. */
+export function useSession(): User | null {
+  return useStore(sessionStore, (state) => (state.token ? state.user : null));
+}
+
+export function useHasPermission(permission: Permission): boolean {
+  return useStore(sessionStore, (state) => Boolean(state.user?.permissions.includes(permission)));
+}

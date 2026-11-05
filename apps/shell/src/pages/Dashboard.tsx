@@ -1,15 +1,23 @@
 import { Link } from 'react-router-dom';
-import { authStore, useApi, Loader, ErrorAlert, formatCurrency, formatDate, maskAccount } from '@bank/shared';
+import { useQuery } from '@tanstack/react-query';
+import { accountsQuery, authStore, Loader, ErrorAlert, formatCurrency, formatDate, maskAccount } from '@bank/shared';
 import { useCurrentUser } from '../auth/AuthContext';
-import { dashboardService } from '../services/dashboardService';
+import { recentTransactionsQuery } from '../services/dashboardService';
 
 export default function Dashboard() {
   const user = useCurrentUser();
-  const { data, loading, error, refetch } = useApi((signal) => dashboardService.getSummary({ signal }));
+  const accounts = useQuery(accountsQuery());
+  const recent = useQuery(recentTransactionsQuery());
+
+  const loading = accounts.isPending || recent.isPending;
+  const error = accounts.error ?? recent.error;
+  const refetch = () => Promise.all([accounts.refetch(), recent.refetch()]);
+  const data =
+    accounts.data && recent.data ? { accounts: accounts.data, recentTransactions: recent.data } : undefined;
 
   const simulateExpiredSession = () => {
     authStore.setSession({ token: 'expired-token', user });
-    refetch();
+    accounts.refetch();
   };
 
   const total = data?.accounts.reduce((sum, a) => sum + a.balance, 0) ?? 0;
