@@ -48,7 +48,7 @@ export default function CardList() {
                       <span>EXP {card.expiry}</span>
                     </div>
                   </div>
-                  <div className="card-footer bg-white d-flex justify-content-between align-items-center">
+                  <div className="card-footer d-flex justify-content-between align-items-center">
                     <div className="small">
                       <span className={`badge ${blocked ? 'text-bg-danger' : 'text-bg-success'}`}>{card.status}</span>
                       {card.limit !== undefined && (
