@@ -55,7 +55,7 @@ export default function BeneficiaryList() {
         beneficiaries.length === 0 ? (
           <p className="text-secondary">No beneficiaries added yet.</p>
         ) : (
-          <table className="table bg-white align-middle">
+          <table className="table align-middle">
             <thead>
               <tr>
                 <th>Name</th>

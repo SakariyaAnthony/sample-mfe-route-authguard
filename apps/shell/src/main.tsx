@@ -7,7 +7,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { authStore, createQueryClient, isCancel, reportError, setErrorReporter } from '@bank/shared';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AuthProvider } from './auth/AuthContext';
+import { initTheme } from './theme';
 import App from './App';
+import './theme/theme.css';
+
+initTheme();
 
 // Every bundle (shell and remotes) reports through this one reporter.
 // Swap the body for Sentry, Datadog, or a POST to a logging endpoint.

@@ -36,7 +36,7 @@ export default function AccountDetail() {
         transactions.data.length === 0 ? (
           <p className="text-secondary">No transactions yet.</p>
         ) : (
-          <table className="table table-hover bg-white">
+          <table className="table table-hover">
             <thead>
               <tr>
                 <th>Date</th>
