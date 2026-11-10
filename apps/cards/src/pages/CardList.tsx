@@ -79,7 +79,7 @@ export default function CardList() {
                       </span>
                     </div>
                   </div>
-                  <div className="card-footer bg-white d-flex justify-content-between align-items-center">
+                  <div className="card-footer d-flex justify-content-between align-items-center">
                     <div className="small">
                       <span className={`badge ${blocked ? 'text-bg-danger' : 'text-bg-success'}`}>
                         {blocked

@@ -71,7 +71,7 @@ export default function BeneficiaryList() {
         beneficiaries.length === 0 ? (
           <p className="text-secondary">{t(Constants.noBeneficiariesKey, Constants.noBeneficiaries)}</p>
         ) : (
-          <table className="table bg-white align-middle">
+          <table className="table align-middle">
             <thead>
               <tr>
                 <th>{t(Constants.colNameKey, Constants.colName)}</th>

@@ -60,7 +60,7 @@ export default function AccountDetail() {
         transactions.data.length === 0 ? (
           <p className="text-secondary">{t(Constants.noTransactionsKey, Constants.noTransactions)}</p>
         ) : (
-          <table className="table table-hover bg-white">
+          <table className="table table-hover">
             <thead>
               <tr>
                 <th>{t(Constants.colDateKey, Constants.colDate)}</th>

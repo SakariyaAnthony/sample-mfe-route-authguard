@@ -47,7 +47,7 @@ export function MainLayout() {
       <div className="container-fluid flex-grow-1 d-flex flex-column">
         <div className="row flex-grow-1">
           {!sidebarCollapsed && (
-            <aside className="col-md-3 col-lg-2 bg-white border-end py-3">
+            <aside className="col-md-3 col-lg-2 bg-body-tertiary border-end py-3">
               <div className="nav nav-pills flex-column gap-1">
                 {visibleItems.map((item) => (
                   <NavLink key={item.to} to={item.to} className="nav-link">

@@ -4,6 +4,7 @@ import { accountsQuery, authStore, Loader, ErrorAlert, formatCurrency, formatDat
 import { useCurrentUser } from '../auth/AuthContext';
 import { Constants, useI18n } from '../i18n';
 import { recentTransactionsQuery } from '../services/dashboardService';
+import { ThemeMenu } from '../theme';
 
 export default function Dashboard() {
   const user = useCurrentUser();
@@ -37,9 +38,12 @@ export default function Dashboard() {
             })}
           </small>
         </div>
-        <button type="button" className="btn btn-outline-warning btn-sm" onClick={simulateExpiredSession}>
-          {t(Constants.simulateExpiryKey, Constants.simulateExpiry)}
-        </button>
+        <div className="d-flex align-items-center gap-2">
+          <ThemeMenu />
+          <button type="button" className="btn btn-outline-warning btn-sm" onClick={simulateExpiredSession}>
+            {t(Constants.simulateExpiryKey, Constants.simulateExpiry)}
+          </button>
+        </div>
       </div>
 
       <ErrorAlert error={error} onRetry={refetch} />

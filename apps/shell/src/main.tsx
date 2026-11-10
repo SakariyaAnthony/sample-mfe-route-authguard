@@ -8,7 +8,11 @@ import { authStore, createQueryClient, isCancel, reportError, setErrorReporter }
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AuthProvider } from './auth/AuthContext';
 import { loadLabels, restoreLocaleFromStorage } from './i18n';
+import { initTheme } from './theme';
 import App from './App';
+import './theme/theme.css';
+
+initTheme();
 
 // Restore locale (en/ar) + document dir before first paint; labels are hardcoded for now.
 restoreLocaleFromStorage();
