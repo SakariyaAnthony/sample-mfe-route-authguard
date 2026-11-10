@@ -31,3 +31,34 @@ export { Toaster } from './components/Toaster';
 export { StandaloneShell } from './components/StandaloneShell';
 export { formatCurrency, formatDate, maskAccount } from './utils/format';
 export type * from './types/banking';
+export {
+  Constants,
+  LOCALE_CHANGE_EVENT,
+  LOCALE_LABELS_STORAGE_KEY,
+  LOCALE_STORAGE_KEY,
+  LABELS_CRITERIA,
+  DEFAULT_LABELS_CRITERIA,
+  LABELS_API_PATH,
+  LabelsApiError,
+  LocaleSwitcher,
+  applyDocumentLanguage,
+  changeLocale,
+  clearLocaleOverlay,
+  fetchLabels,
+  getFallbackInventory,
+  getLocale,
+  getServiceLocaleMap,
+  loadFallbackSeeds,
+  loadLabels,
+  normalizeLabelsMap,
+  resetLocaleStrings,
+  restoreLocaleFromStorage,
+  setLocale,
+  setLocaleStrings,
+  syncFromStorage,
+  t,
+  tFormat,
+  td,
+  useI18n,
+} from './i18n';
+export type { ConstantKey, LocaleCode, LabelsCriteria, LabelsListResponse } from './i18n';

@@ -6,6 +6,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { PermissionRoute } from './routes/PermissionRoute';
 import { GuestRoute } from './routes/GuestRoute';
 import { RemoteBoundary } from './components/RemoteBoundary';
+import { Constants, useI18n } from './i18n';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
@@ -19,20 +20,53 @@ const BeneficiaryApp = lazy(() => import('beneficiary/App'));
 
 interface RemoteRoute {
   path: string;
+  nameKey: string;
   name: string;
   permission: Permission;
   Component: LazyExoticComponent<ComponentType>;
 }
 
 const remoteRoutes: RemoteRoute[] = [
-  { path: 'accounts', name: 'Accounts', permission: 'accounts', Component: AccountsApp },
-  { path: 'cards', name: 'Cards', permission: 'cards', Component: CardsApp },
-  { path: 'utility', name: 'Bill Payments', permission: 'utility', Component: UtilityApp },
-  { path: 'transfer', name: 'Fund Transfer', permission: 'transfer', Component: TransferApp },
-  { path: 'beneficiary', name: 'Beneficiaries', permission: 'beneficiary', Component: BeneficiaryApp },
+  {
+    path: 'accounts',
+    nameKey: Constants.menuAccountsKey,
+    name: Constants.menuAccounts,
+    permission: 'accounts',
+    Component: AccountsApp,
+  },
+  {
+    path: 'cards',
+    nameKey: Constants.menuCardsKey,
+    name: Constants.menuCards,
+    permission: 'cards',
+    Component: CardsApp,
+  },
+  {
+    path: 'utility',
+    nameKey: Constants.menuUtilityKey,
+    name: Constants.menuUtility,
+    permission: 'utility',
+    Component: UtilityApp,
+  },
+  {
+    path: 'transfer',
+    nameKey: Constants.menuTransferKey,
+    name: Constants.menuTransfer,
+    permission: 'transfer',
+    Component: TransferApp,
+  },
+  {
+    path: 'beneficiary',
+    nameKey: Constants.menuBeneficiaryKey,
+    name: Constants.menuBeneficiary,
+    permission: 'beneficiary',
+    Component: BeneficiaryApp,
+  },
 ];
 
 export default function App() {
+  const { t } = useI18n();
+
   return (
     <Routes>
       <Route element={<GuestRoute />}>
@@ -44,12 +78,12 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
 
-          {remoteRoutes.map(({ path, name, permission, Component }) => (
+          {remoteRoutes.map(({ path, nameKey, name, permission, Component }) => (
             <Route key={path} element={<PermissionRoute permission={permission} />}>
               <Route
                 path={`${path}/*`}
                 element={
-                  <RemoteBoundary key={path} name={name}>
+                  <RemoteBoundary key={path} name={t(nameKey, name)}>
                     <Component />
                   </RemoteBoundary>
                 }

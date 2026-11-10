@@ -1,7 +1,15 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys, notify, ErrorAlert } from '@bank/shared';
+import {
+  queryKeys,
+  notify,
+  ErrorAlert,
+  Constants,
+  useI18n,
+  t as translate,
+  tFormat,
+} from '@bank/shared';
 import { beneficiaryService } from '../services/beneficiaryService';
 
 interface BeneficiaryForm {
@@ -19,30 +27,69 @@ const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 const validate = (form: BeneficiaryForm): FormErrors => {
   const errors: FormErrors = {};
-  if (form.name.trim().length < 3) errors.name = 'Enter the full name';
-  if (!/^\d{9,18}$/.test(form.accountNumber)) errors.accountNumber = 'Account number must be 9 to 18 digits';
-  if (form.accountNumber !== form.confirmAccountNumber) errors.confirmAccountNumber = 'Account numbers do not match';
-  if (!IFSC_PATTERN.test(form.ifsc)) errors.ifsc = 'Invalid IFSC (e.g. HDFC0001234)';
-  if (!form.bank.trim()) errors.bank = 'Enter the bank name';
+  if (form.name.trim().length < 3) {
+    errors.name = translate(Constants.errFullNameKey, Constants.errFullName);
+  }
+  if (!/^\d{9,18}$/.test(form.accountNumber)) {
+    errors.accountNumber = translate(Constants.errAccountDigitsKey, Constants.errAccountDigits);
+  }
+  if (form.accountNumber !== form.confirmAccountNumber) {
+    errors.confirmAccountNumber = translate(Constants.errAccountMismatchKey, Constants.errAccountMismatch);
+  }
+  if (!IFSC_PATTERN.test(form.ifsc)) {
+    errors.ifsc = translate(Constants.errInvalidIfscKey, Constants.errInvalidIfsc);
+  }
+  if (!form.bank.trim()) {
+    errors.bank = translate(Constants.errBankNameKey, Constants.errBankName);
+  }
   return errors;
 };
 
-const FIELDS: { name: keyof BeneficiaryForm; label: string }[] = [
-  { name: 'name', label: 'Beneficiary name' },
-  { name: 'nickname', label: 'Nickname (optional)' },
-  { name: 'accountNumber', label: 'Account number' },
-  { name: 'confirmAccountNumber', label: 'Confirm account number' },
-  { name: 'ifsc', label: 'IFSC code' },
-  { name: 'bank', label: 'Bank name' },
+const FIELD_DEFS: {
+  name: keyof BeneficiaryForm;
+  labelKey: string;
+  label: string;
+}[] = [
+  {
+    name: 'name',
+    labelKey: Constants.fieldBeneficiaryNameKey,
+    label: Constants.fieldBeneficiaryName,
+  },
+  {
+    name: 'nickname',
+    labelKey: Constants.fieldNicknameKey,
+    label: Constants.fieldNickname,
+  },
+  {
+    name: 'accountNumber',
+    labelKey: Constants.fieldAccountNumberKey,
+    label: Constants.fieldAccountNumber,
+  },
+  {
+    name: 'confirmAccountNumber',
+    labelKey: Constants.fieldConfirmAccountKey,
+    label: Constants.fieldConfirmAccount,
+  },
+  {
+    name: 'ifsc',
+    labelKey: Constants.fieldIfscKey,
+    label: Constants.fieldIfsc,
+  },
+  {
+    name: 'bank',
+    labelKey: Constants.fieldBankNameKey,
+    label: Constants.fieldBankName,
+  },
 ];
 
 export default function AddBeneficiary() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const creation = useMutation({
     mutationFn: beneficiaryService.addBeneficiary,
     onSuccess: (created) => {
-      notify(`${created.name} added as a beneficiary`);
+      notify(tFormat(Constants.beneficiaryAddedKey, Constants.beneficiaryAdded, { name: created.name }));
       queryClient.invalidateQueries({ queryKey: queryKeys.beneficiaries.all });
       navigate('..', { relative: 'path' });
     },
@@ -79,15 +126,19 @@ export default function AddBeneficiary() {
 
   return (
     <>
-      <Link to=".." relative="path" className="btn btn-link px-0 mb-2">&larr; Back to beneficiaries</Link>
+      <Link to=".." relative="path" className="btn btn-link px-0 mb-2">
+        {t(Constants.backToBeneficiariesKey, Constants.backToBeneficiaries)}
+      </Link>
       <div className="card" style={{ maxWidth: 560 }}>
         <div className="card-body">
-          <h4 className="mb-3">Add beneficiary</h4>
+          <h4 className="mb-3">{t(Constants.addBeneficiaryKey, Constants.addBeneficiary)}</h4>
           <ErrorAlert error={creation.error} />
           <form onSubmit={onSubmit} noValidate>
-            {FIELDS.map(({ name, label }) => (
+            {FIELD_DEFS.map(({ name, labelKey, label }) => (
               <div key={name} className="mb-3">
-                <label className="form-label" htmlFor={name}>{label}</label>
+                <label className="form-label" htmlFor={name}>
+                  {t(labelKey, label)}
+                </label>
                 <input
                   id={name}
                   name={name}
@@ -99,7 +150,9 @@ export default function AddBeneficiary() {
               </div>
             ))}
             <button type="submit" className="btn btn-primary" disabled={creation.isPending}>
-              {creation.isPending ? 'Saving...' : 'Save beneficiary'}
+              {creation.isPending
+                ? t(Constants.savingKey, Constants.saving)
+                : t(Constants.saveBeneficiaryKey, Constants.saveBeneficiary)}
             </button>
           </form>
         </div>

@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary, Toaster, toggleSidebar, useSidebarCollapsed } from '@bank/shared';
 import { useAuth, useCurrentUser } from '../auth/AuthContext';
+import { Constants, LocaleSwitcher, useI18n } from '../i18n';
 import { NAV_ITEMS } from '../navigation';
 
 export function MainLayout() {
@@ -8,6 +9,7 @@ export function MainLayout() {
   const { hasPermission, logout } = useAuth();
   const sidebarCollapsed = useSidebarCollapsed();
   const { pathname } = useLocation();
+  const { t } = useI18n();
   const visibleItems = NAV_ITEMS.filter((item) => !item.permission || hasPermission(item.permission));
 
   return (
@@ -17,20 +19,27 @@ export function MainLayout() {
           <button
             type="button"
             className="btn btn-sm btn-outline-light"
-            aria-label={sidebarCollapsed ? 'Show menu' : 'Hide menu'}
+            aria-label={
+              sidebarCollapsed
+                ? t(Constants.showMenuKey, Constants.showMenu)
+                : t(Constants.hideMenuKey, Constants.hideMenu)
+            }
             aria-expanded={!sidebarCollapsed}
             onClick={toggleSidebar}
           >
             &#9776;
           </button>
-          <span className="navbar-brand fw-semibold">Retail Internet Banking</span>
+          <span className="navbar-brand fw-semibold">
+            {t(Constants.brandTitleKey, Constants.brandTitle)}
+          </span>
         </div>
         <div className="d-flex align-items-center gap-3 text-white">
+          <LocaleSwitcher variant="dark" />
           <span className="small">
             {user.name} <span className="badge bg-light text-primary ms-1">{user.username}</span>
           </span>
           <button type="button" className="btn btn-sm btn-outline-light" onClick={logout}>
-            Logout
+            {t(Constants.logoutKey, Constants.logout)}
           </button>
         </div>
       </nav>
@@ -42,7 +51,7 @@ export function MainLayout() {
               <div className="nav nav-pills flex-column gap-1">
                 {visibleItems.map((item) => (
                   <NavLink key={item.to} to={item.to} className="nav-link">
-                    {item.label}
+                    {t(item.labelKey, item.label)}
                   </NavLink>
                 ))}
               </div>

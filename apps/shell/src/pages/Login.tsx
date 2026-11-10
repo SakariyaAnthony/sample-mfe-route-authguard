@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLocation, useNavigate, type Location } from 'react-router-dom';
 import { getUserMessage } from '@bank/shared';
 import { useAuth } from '../auth/AuthContext';
+import { Constants, LocaleSwitcher, useI18n } from '../i18n';
 
 export interface LoginLocationState {
   from?: Location;
@@ -9,14 +10,23 @@ export interface LoginLocationState {
 }
 
 const DEMO_USERS = [
-  { username: 'john', label: 'john / 1234 (all modules)' },
-  { username: 'viewer', label: 'viewer / 1234 (no Transfer, no Beneficiary)' },
+  {
+    username: 'john',
+    labelKey: Constants.demoUserJohnKey,
+    label: Constants.demoUserJohn,
+  },
+  {
+    username: 'viewer',
+    labelKey: Constants.demoUserViewerKey,
+    label: Constants.demoUserViewer,
+  },
 ];
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, tFormat } = useI18n();
   const state = (location.state ?? {}) as LoginLocationState;
   const [form, setForm] = useState({ username: 'john', password: '1234' });
   const [error, setError] = useState<string | null>(null);
@@ -42,35 +52,52 @@ export default function Login() {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center">
+      <div className="position-absolute top-0 end-0 p-3">
+        <LocaleSwitcher />
+      </div>
       <div className="card shadow-sm" style={{ width: 400 }}>
         <div className="card-body p-4">
-          <h4 className="mb-1">Internet Banking</h4>
-          <p className="text-secondary small mb-4">Sign in to continue</p>
+          <h4 className="mb-1">{t(Constants.loginTitleKey, Constants.loginTitle)}</h4>
+          <p className="text-secondary small mb-4">
+            {t(Constants.loginSubtitleKey, Constants.loginSubtitle)}
+          </p>
 
           {sessionExpired && (
-            <div className="alert alert-warning py-2 small">Your session has expired. Please sign in again.</div>
+            <div className="alert alert-warning py-2 small">
+              {t(Constants.sessionExpiredKey, Constants.sessionExpired)}
+            </div>
           )}
           {state.from && !sessionExpired && (
-            <div className="alert alert-info py-2 small">Please sign in to access {state.from.pathname}</div>
+            <div className="alert alert-info py-2 small">
+              {tFormat(Constants.signInToAccessKey, Constants.signInToAccess, {
+                path: state.from.pathname,
+              })}
+            </div>
           )}
           {error && <div className="alert alert-danger py-2 small">{error}</div>}
 
           <form onSubmit={onSubmit}>
             <div className="mb-3">
-              <label className="form-label" htmlFor="username">Username</label>
+              <label className="form-label" htmlFor="username">
+                {t(Constants.usernameKey, Constants.username)}
+              </label>
               <input id="username" name="username" className="form-control" value={form.username} onChange={onChange} required />
             </div>
             <div className="mb-3">
-              <label className="form-label" htmlFor="password">Password</label>
+              <label className="form-label" htmlFor="password">
+                {t(Constants.passwordKey, Constants.password)}
+              </label>
               <input id="password" name="password" type="password" className="form-control" value={form.password} onChange={onChange} required />
             </div>
             <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading
+                ? t(Constants.signingInKey, Constants.signingIn)
+                : t(Constants.signInKey, Constants.signIn)}
             </button>
           </form>
 
           <hr />
-          <p className="small text-secondary mb-1">Demo users:</p>
+          <p className="small text-secondary mb-1">{t(Constants.demoUsersKey, Constants.demoUsers)}</p>
           {DEMO_USERS.map((u) => (
             <button
               key={u.username}
@@ -78,7 +105,7 @@ export default function Login() {
               className="btn btn-link btn-sm p-0 d-block"
               onClick={() => setForm({ username: u.username, password: '1234' })}
             >
-              {u.label}
+              {t(u.labelKey, u.label)}
             </button>
           ))}
         </div>
