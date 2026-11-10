@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { accountsQuery, authStore, Loader, ErrorAlert, formatCurrency, formatDate, maskAccount } from '@bank/shared';
 import { useCurrentUser } from '../auth/AuthContext';
 import { recentTransactionsQuery } from '../services/dashboardService';
-import { ThemeMenu } from '../theme';
 
 export default function Dashboard() {
   const user = useCurrentUser();
@@ -30,12 +29,9 @@ export default function Dashboard() {
           <h3 className="mb-0">Welcome, {user.name}</h3>
           <small className="text-secondary">Permissions: {user.permissions.join(', ')}</small>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <ThemeMenu />
-          <button type="button" className="btn btn-outline-warning btn-sm" onClick={simulateExpiredSession}>
-            Simulate session expiry (401)
-          </button>
-        </div>
+        <button type="button" className="btn btn-outline-warning btn-sm" onClick={simulateExpiredSession}>
+          Simulate session expiry (401)
+        </button>
       </div>
 
       <ErrorAlert error={error} onRetry={refetch} />

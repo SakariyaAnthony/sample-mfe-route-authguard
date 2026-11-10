@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary, Toaster, toggleSidebar, useSidebarCollapsed } from '@bank/shared';
 import { useAuth, useCurrentUser } from '../auth/AuthContext';
 import { NAV_ITEMS } from '../navigation';
+import { ThemeMenu } from '../theme';
 
 export function MainLayout() {
   const user = useCurrentUser();
@@ -29,6 +30,7 @@ export function MainLayout() {
           <span className="small">
             {user.name} <span className="badge bg-light text-primary ms-1">{user.username}</span>
           </span>
+          <ThemeMenu />
           <button type="button" className="btn btn-sm btn-outline-light" onClick={logout}>
             Logout
           </button>

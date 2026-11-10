@@ -8,7 +8,7 @@ function useTheme() {
 
 function ThemeIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.25" />
       <path fill="currentColor" d="M8 2.2a5.8 5.8 0 0 0 0 11.6V2.2z" />
     </svg>
@@ -54,7 +54,7 @@ export function ThemeMenu() {
     <div className="theme-menu dropdown" ref={rootRef}>
       <button
         type="button"
-        className="btn btn-outline-secondary theme-menu-button"
+        className="btn btn-sm btn-outline-light theme-menu-button"
         aria-label="Choose theme"
         aria-haspopup="menu"
         aria-expanded={open}

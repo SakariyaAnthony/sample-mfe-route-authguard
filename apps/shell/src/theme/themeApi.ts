@@ -1,9 +1,8 @@
 import { isRecord, type ApiTheme, type BrandColors } from './types';
 
 /** Light and dark only. Custom palettes are not sent here. */
-export const THEME_API_URL = import.meta.env.DEV
-  ? '/backoffice-service/theme/getAll'
-  : 'http://34.18.92.50:8443/backoffice-service/theme/getAll';
+export const THEME_API_BASE = 'http://34.18.92.50:8443';
+export const THEME_API_URL = `${THEME_API_BASE}/backoffice-service/theme/getAll`;
 
 const THEME_DOMAIN_ID = 'BOAPP';
 
