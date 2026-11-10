@@ -184,8 +184,6 @@ export const FALLBACK_AR: Record<string, string> = {
   'ICICI Bank': 'بنك آي سي آي سي آي',
   Ravi: 'رافي',
   Anita: 'أنيتا',
-
-
   
   // Permissions (dashboard)
   accounts: 'الحسابات',
