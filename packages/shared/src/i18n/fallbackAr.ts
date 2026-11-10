@@ -185,6 +185,8 @@ export const FALLBACK_AR: Record<string, string> = {
   Ravi: 'رافي',
   Anita: 'أنيتا',
 
+
+  
   // Permissions (dashboard)
   accounts: 'الحسابات',
   cards: 'البطاقات',
