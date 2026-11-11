@@ -3,6 +3,7 @@ import { ErrorBoundary, Toaster, toggleSidebar, useSidebarCollapsed } from '@ban
 import { useAuth, useCurrentUser } from '../auth/AuthContext';
 import { Constants, LocaleSwitcher, useI18n } from '../i18n';
 import { NAV_ITEMS } from '../navigation';
+import { ThemeMenu } from '../theme';
 
 export function MainLayout() {
   const user = useCurrentUser();
@@ -38,6 +39,7 @@ export function MainLayout() {
           <span className="small">
             {user.name} <span className="badge bg-light text-primary ms-1">{user.username}</span>
           </span>
+          <ThemeMenu />
           <button type="button" className="btn btn-sm btn-outline-light" onClick={logout}>
             {t(Constants.logoutKey, Constants.logout)}
           </button>

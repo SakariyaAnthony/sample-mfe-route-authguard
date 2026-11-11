@@ -4,7 +4,6 @@ import { accountsQuery, authStore, Loader, ErrorAlert, formatCurrency, formatDat
 import { useCurrentUser } from '../auth/AuthContext';
 import { Constants, useI18n } from '../i18n';
 import { recentTransactionsQuery } from '../services/dashboardService';
-import { ThemeMenu } from '../theme';
 
 export default function Dashboard() {
   const user = useCurrentUser();
