@@ -7,16 +7,19 @@ import {
   useHasPermission,
   Loader,
   ErrorAlert,
+  Constants,
+  useI18n,
+  tFormat,
   type Beneficiary,
 } from '@bank/shared';
 import { beneficiaryService } from '../services/beneficiaryService';
 
 export default function BeneficiaryList() {
+  const { t, td } = useI18n();
   const queryClient = useQueryClient();
   const { data: beneficiaries, isPending: loading, error, refetch } = useQuery(beneficiariesQuery());
   const canTransfer = useHasPermission('transfer');
 
-  // Optimistic: the row disappears immediately and comes back if the DELETE fails.
   const removal = useMutation({
     mutationFn: beneficiaryService.deleteBeneficiary,
     onMutate: async (id) => {
@@ -29,12 +32,18 @@ export default function BeneficiaryList() {
     onError: (_error, _id, context) => {
       queryClient.setQueryData(queryKeys.beneficiaries.all, context?.previous);
     },
-    onSuccess: () => notify('Beneficiary removed'),
+    onSuccess: () => notify(t(Constants.beneficiaryRemovedKey, Constants.beneficiaryRemoved)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.beneficiaries.all }),
   });
 
   const remove = (beneficiary: Beneficiary) => {
-    if (!window.confirm(`Remove ${beneficiary.name}?`)) return;
+    if (
+      !window.confirm(
+        tFormat(Constants.removeConfirmKey, Constants.removeConfirm, { name: beneficiary.name }),
+      )
+    ) {
+      return;
+    }
     removal.mutate(beneficiary.id);
   };
 
@@ -42,26 +51,33 @@ export default function BeneficiaryList() {
     <>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h3 className="mb-0">
-          Beneficiaries <span className="badge text-bg-secondary fs-6 align-middle">beneficiary MFE</span>
+          {t(Constants.beneficiariesTitleKey, Constants.beneficiariesTitle)}{' '}
+          <span className="badge text-bg-secondary fs-6 align-middle">
+            {t(Constants.beneficiaryMfeBadgeKey, Constants.beneficiaryMfeBadge)}
+          </span>
         </h3>
-        <Link to="add" className="btn btn-primary btn-sm">Add beneficiary</Link>
+        <Link to="add" className="btn btn-primary btn-sm">
+          {t(Constants.addBeneficiaryKey, Constants.addBeneficiary)}
+        </Link>
       </div>
 
       <ErrorAlert error={error} onRetry={refetch} />
       <ErrorAlert error={removal.error} />
-      {loading && <Loader text="Fetching beneficiaries..." />}
+      {loading && (
+        <Loader text={t(Constants.fetchingBeneficiariesKey, Constants.fetchingBeneficiaries)} />
+      )}
 
       {beneficiaries && !loading && (
         beneficiaries.length === 0 ? (
-          <p className="text-secondary">No beneficiaries added yet.</p>
+          <p className="text-secondary">{t(Constants.noBeneficiariesKey, Constants.noBeneficiaries)}</p>
         ) : (
           <table className="table align-middle">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Bank</th>
-                <th>Account</th>
-                <th>IFSC</th>
+                <th>{t(Constants.colNameKey, Constants.colName)}</th>
+                <th>{t(Constants.colBankKey, Constants.colBank)}</th>
+                <th>{t(Constants.colAccountKey, Constants.colAccount)}</th>
+                <th>{t(Constants.colIfscKey, Constants.colIfsc)}</th>
                 <th />
               </tr>
             </thead>
@@ -69,21 +85,20 @@ export default function BeneficiaryList() {
               {beneficiaries.map((b) => (
                 <tr key={b.id}>
                   <td>
-                    {b.name}
-                    {b.nickname && <small className="text-secondary d-block">{b.nickname}</small>}
+                    {td(b.name)}
+                    {b.nickname && <small className="text-secondary d-block">{td(b.nickname)}</small>}
                   </td>
-                  <td>{b.bank}</td>
+                  <td>{td(b.bank)}</td>
                   <td className="font-monospace">{b.accountNumber}</td>
                   <td className="font-monospace">{b.ifsc}</td>
                   <td className="text-end">
                     {canTransfer && (
-                      // Cross-MFE navigation: just a URL, no direct import of the transfer module.
                       <Link to={`/transfer?beneficiaryId=${b.id}`} className="btn btn-sm btn-outline-primary me-2">
-                        Send money
+                        {t(Constants.sendMoneyKey, Constants.sendMoney)}
                       </Link>
                     )}
                     <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => remove(b)}>
-                      Delete
+                      {t(Constants.deleteKey, Constants.delete)}
                     </button>
                   </td>
                 </tr>

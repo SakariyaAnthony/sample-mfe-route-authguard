@@ -9,6 +9,8 @@ import {
   ErrorAlert,
   formatCurrency,
   maskAccount,
+  Constants,
+  useI18n,
   type Payment,
 } from '@bank/shared';
 import { billerQuery, utilityService } from '../services/utilityService';
@@ -21,6 +23,7 @@ interface PayBillForm {
 
 export default function PayBill() {
   const { billerId = '' } = useParams<{ billerId: string }>();
+  const { t, tFormat, td } = useI18n();
   const queryClient = useQueryClient();
   const biller = useQuery(billerQuery(billerId));
   const accounts = useQuery(accountsQuery());
@@ -32,8 +35,12 @@ export default function PayBill() {
     mutationFn: utilityService.payBill,
     onSuccess: (result) => {
       setReceipt(result);
-      notify(`Paid ${formatCurrency(result.amount)} to ${result.billerName}`);
-      // Balances shown by the dashboard, accounts and transfer modules are now out of date.
+      notify(
+        tFormat(Constants.paidToKey, Constants.paidTo, {
+          amount: formatCurrency(result.amount),
+          name: result.billerName,
+        }),
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
     },
@@ -59,42 +66,54 @@ export default function PayBill() {
 
   return (
     <>
-      <Link to="../.." relative="path" className="btn btn-link px-0 mb-2">&larr; All billers</Link>
+      <Link to="../.." relative="path" className="btn btn-link px-0 mb-2">
+        {t(Constants.allBillersKey, Constants.allBillers)}
+      </Link>
       <div className="card" style={{ maxWidth: 520 }}>
         <div className="card-body">
-          <h4>Pay {biller.data.name}</h4>
-          <p className="text-secondary small">{biller.data.category}</p>
+          <h4>
+            {tFormat(Constants.payBillerKey, Constants.payBiller, { name: td(biller.data.name) })}
+          </h4>
+          <p className="text-secondary small">{td(biller.data.category)}</p>
 
           {receipt ? (
             <div className="alert alert-success mb-0">
-              Payment of <strong>{formatCurrency(receipt.amount)}</strong> successful.
+              {tFormat(Constants.paymentSuccessfulKey, Constants.paymentSuccessful, {
+                amount: formatCurrency(receipt.amount),
+              })}
               <br />
-              Reference: <code>{receipt.reference}</code>
+              {t(Constants.referenceKey, Constants.reference)}: <code>{receipt.reference}</code>
             </div>
           ) : (
             <form onSubmit={onSubmit}>
               <ErrorAlert error={payment.error} />
               <div className="mb-3">
-                <label className="form-label" htmlFor="accountId">Pay from</label>
+                <label className="form-label" htmlFor="accountId">
+                  {t(Constants.payFromKey, Constants.payFrom)}
+                </label>
                 <select id="accountId" name="accountId" className="form-select" value={form.accountId} onChange={onChange} required>
-                  <option value="">Select account</option>
+                  <option value="">{t(Constants.selectAccountKey, Constants.selectAccount)}</option>
                   {accounts.data.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {a.type} {maskAccount(a.number)} - {formatCurrency(a.balance)}
+                      {td(a.type)} {maskAccount(a.number)} - {formatCurrency(a.balance)}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="mb-3">
-                <label className="form-label" htmlFor="consumerNumber">{biller.data.consumerLabel}</label>
+                <label className="form-label" htmlFor="consumerNumber">{td(biller.data.consumerLabel)}</label>
                 <input id="consumerNumber" name="consumerNumber" className="form-control" value={form.consumerNumber} onChange={onChange} required />
               </div>
               <div className="mb-3">
-                <label className="form-label" htmlFor="amount">Amount (INR)</label>
+                <label className="form-label" htmlFor="amount">
+                  {t(Constants.amountInrKey, Constants.amountInr)}
+                </label>
                 <input id="amount" name="amount" type="number" min="1" step="0.01" className="form-control" value={form.amount} onChange={onChange} required />
               </div>
               <button type="submit" className="btn btn-primary" disabled={payment.isPending}>
-                {payment.isPending ? 'Processing...' : 'Pay now'}
+                {payment.isPending
+                  ? t(Constants.processingKey, Constants.processing)
+                  : t(Constants.payNowKey, Constants.payNow)}
               </button>
             </form>
           )}

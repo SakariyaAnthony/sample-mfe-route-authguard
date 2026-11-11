@@ -7,11 +7,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { authStore, createQueryClient, isCancel, reportError, setErrorReporter } from '@bank/shared';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { AuthProvider } from './auth/AuthContext';
+import { loadLabels, restoreLocaleFromStorage } from './i18n';
 import { initTheme } from './theme';
 import App from './App';
 import './theme/theme.css';
 
 initTheme();
+
+// Restore locale (en/ar) + document dir before first paint; labels are hardcoded for now.
+restoreLocaleFromStorage();
+void loadLabels().catch(() => {});
 
 // Every bundle (shell and remotes) reports through this one reporter.
 // Swap the body for Sentry, Datadog, or a POST to a logging endpoint.
